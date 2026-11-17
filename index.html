@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Preisfinder</title>
+<meta name="description" content="Grocery prices in Zurich: Aligro, Migros, Lidl, Aldi, Denner, Prodega — cheapest per kg/l first.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Preisfinder">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css?v=104">
+<link rel="stylesheet" href="motion.css?v=2">
+</head>
+<body data-mode="search">
+<header class="top">
+  <div class="bar">
+    <a class="logo" href="./">Preisfinder</a>
+    <nav>
+      <button type="button" id="dealsBtn">Deals</button>
+      <button type="button" data-view="list">List <span id="listCount"></span></button>
+      <button type="button" id="layoutBtn" class="ico" aria-label="Grid"></button>
+      <button type="button" id="settingsBtn" class="ico" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M20.36 9.99 L22.85 10.19 L22.85 13.81 L20.36 14.01 L19.33 16.49 L20.95 18.40 L18.40 20.95 L16.49 19.33 L14.01 20.36 L13.81 22.85 L10.19 22.85 L9.99 20.36 L7.51 19.33 L5.60 20.95 L3.05 18.40 L4.67 16.49 L3.64 14.01 L1.15 13.81 L1.15 10.19 L3.64 9.99 L4.67 7.51 L3.05 5.60 L5.60 3.05 L7.51 4.67 L9.99 3.64 L10.19 1.15 L13.81 1.15 L14.01 3.64 L16.49 4.67 L18.40 3.05 L20.95 5.60 L19.33 7.51Z M16.9 12 A4.9 4.9 0 1 0 7.1 12 A4.9 4.9 0 1 0 16.9 12Z"/></svg></button>
+    </nav>
+  </div>
+  <form id="f" role="search" autocomplete="off">
+    <input id="q" type="search" placeholder="ginger, Ingwer, gingembre …" enterkeyhint="search"
+           autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Search products">
+  </form>
+  <div id="stores" class="shops" aria-label="Shops"></div>
+  <div class="opts">
+    <button type="button" id="promo" class="toggle" aria-pressed="false">Promos only</button>
+    <button type="button" id="bio" class="toggle" aria-pressed="false">Organic</button>
+    <label class="sortwrap"><span class="sortlbl">Sort</span> <span class="sortval">per kg / l</span>
+      <select id="sort" aria-label="Sort">
+        <option value="unit">per kg / l</option>
+        <option value="price">price</option>
+        <option value="pct">discount</option>
+      </select></label>
+  </div>
+</header>
+<main>
+  <div id="results">
+    <p id="status" class="status">Loading prices …</p>
+    <section id="sum" class="sum" hidden></section>
+    <div id="kinds" class="kinds"></div>
+    <ul id="list" class="list"></ul>
+    <button id="more" class="more" hidden>Show more</button>
+  </div>
+  <div id="lv" class="listview" hidden></div>
+</main>
+<dialog id="settings">
+  <header><h2>Settings</h2><button type="button" id="settingsClose" class="textbtn">Close</button></header>
+  <div id="settingsBody"></div>
+</dialog>
+<footer class="foot" id="foot"></footer>
+<script src="i18n.js?v=104"></script>
+<script src="app.js?v=104"></script>
+<script src="profile.js?v=104"></script>
+<script src="motion.js?v=3"></script>
+</body>
+</html>

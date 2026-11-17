@@ -1,0 +1,67 @@
+/* ---------------------------------------------------------------- motion layer (test branch)
+   Apple-style details on top of the same design: instant press feedback, critically damped ease-outs,
+   results that settle in, a settings sheet that grows out of the gear, cards that morph between rows
+   and grid, a hidden card that folds away. Same colours, same type. Reduced motion = cross-fades only. */
+:root {
+  --ease-out: cubic-bezier(.2, .8, .2, 1);      /* ≈ spring, damping 1.0, response ~0.35s */
+  --ease-in: cubic-bezier(.8, .2, .8, .2);      /* mirrored for the way out */
+  --press: 100ms;
+}
+
+/* 1. response: feedback on press, not on release */
+button, .chip, .seg button, nav button, .sortwrap, .acts a {
+  transition: transform var(--press) ease-out, opacity 180ms ease-out, filter 180ms ease-out,
+    background-color 160ms ease-out, color 160ms ease-out;
+}
+button:active, .chip:active, .sortwrap:active, .acts a:active { transform: scale(.94); }
+nav button:active { transform: scale(.9); }
+.card { transition: box-shadow 200ms var(--ease-out), transform 160ms var(--ease-out); }
+
+/* 2. results settle in, a few at a time (only what is on screen) */
+@keyframes settle { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+.card.enter { animation: settle 380ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 28ms); }
+.sum:not([hidden]), .kinds > * { animation: settle 320ms var(--ease-out) both; }
+
+/* 3. heart / + : a small pop when switched on (the tap carried the energy, so a little overshoot is fine) */
+@keyframes pulse { 40% { transform: scale(1.32); } 70% { transform: scale(.92); } }
+.acts button.popping svg { animation: pulse 360ms var(--ease-out); }
+
+/* 4. a hidden card folds away instead of vanishing */
+.card.leaving { overflow: hidden; pointer-events: none;
+  transition: opacity 180ms ease-out, transform 220ms var(--ease-in), max-height 280ms var(--ease-out) 60ms,
+    margin 280ms var(--ease-out) 60ms, padding 280ms var(--ease-out) 60ms, border-width 280ms 60ms; }
+.card.leaving.gone-now { opacity: 0; transform: scale(.96); max-height: 0 !important; margin-top: 0; margin-bottom: 0;
+  padding-top: 0; padding-bottom: 0; border-width: 0; }
+
+/* 5. settings: a sheet that grows out of the gear (top right) and goes back into it */
+dialog#settings {
+  transform-origin: calc(100% - 20px) 0;
+  opacity: 0; transform: translateY(-6px) scale(.96);
+  transition: opacity 200ms ease-out, transform 340ms var(--ease-out), overlay 340ms allow-discrete, display 340ms allow-discrete;
+}
+dialog#settings[open] { opacity: 1; transform: none; }
+@starting-style { dialog#settings[open] { opacity: 0; transform: translateY(-6px) scale(.96); } }
+dialog#settings::backdrop { transition: background-color 260ms ease-out, overlay 260ms allow-discrete, display 260ms allow-discrete;
+  background-color: rgba(255, 255, 255, 0); }
+dialog#settings[open]::backdrop { background-color: rgba(255, 255, 255, .8); }
+@starting-style { dialog#settings[open]::backdrop { background-color: rgba(255, 255, 255, 0); } }
+
+/* 6. header as a light material: content scrolls underneath, still reads white */
+header.top { background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); }
+
+/* 7. rows ⇄ grid: cards morph to their new place (View Transitions) */
+::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: var(--ease-out); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 220ms; }
+
+/* 8. Show / Hide and shop chips: state changes glide */
+.shops .chip { transition: transform var(--press) ease-out, opacity 220ms ease-out, filter 220ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+  button:active, .chip:active, nav button:active, .sortwrap:active { transform: none; }
+  dialog#settings, dialog#settings[open] { transform: none; }
+  ::view-transition-group(*) { animation-duration: 1ms; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header.top { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

@@ -1,0 +1,36 @@
+# Preisfinder
+
+> Grocery prices from shops around Zurich (Migros, Coop, Aldi, Lidl, Denner, Aligro, Prodega, Volg, Otto's
+> and three small shops), refreshed weekly. Use it to find where to buy the ingredients of a recipe,
+> a shopping list or a big dinner as cheaply as possible. Prices in CHF incl. VAT.
+
+Site: https://nikolahristovnikolov.github.io/preisfinder/
+Source and method: https://github.com/NikolaHristovNikolov/preisfinder
+
+## Best file for planning: cheapest product per type and shop
+
+- [cheapest_by_type.csv](https://nikolahristovnikolov.github.io/preisfinder/data/cheapest_by_type.csv):
+  one row per product type and shop, that shop's cheapest product of the type per kg or litre.
+  Columns: `type` (Open Food Facts English slug, e.g. `jasmine-rices`, `butters`, `chickpeas`),
+  `also_called` (German / French / English names), `shop`, `product`, `pack`, `price_chf`,
+  `chf_per_unit`, `unit` (kg or l), `promo` (e.g. `-30% until 2026-11-22`, empty = regular price).
+  Rows are sorted by type, then cheapest first. Only types sold by at least two shops are listed.
+
+## How to answer "here is my menu / list, where should I buy what?"
+
+1. Turn each ingredient into a type: search `type` and `also_called` (try singular/plural and the German
+   word: "Kichererbsen" = chickpeas, "Rahm" = cream, "Poulet" = chicken).
+2. Work out the amount needed (e.g. 2.4 kg chickpeas for 60 people) and compare `chf_per_unit` × amount.
+   Check `pack`: a 25 kg sack is cheap per kg but maybe too much.
+3. Prefer rows with a `promo` only if the date is still in the future.
+4. Group the result by shop, so the person makes as few trips as possible; say what a second shop would
+   save. Aligro and Prodega are wholesale/cash & carry (Prodega needs a business card); Migros, Coop, Aldi,
+   Lidl and Denner are ordinary supermarkets.
+5. Say that prices are copied automatically, up to a week old, and the shelf price counts.
+
+## Full data (large)
+
+- [index.json](https://nikolahristovnikolov.github.io/preisfinder/data/index.json): list of shop files.
+- `data/<shop>.json`: every product of a shop (keys: `n` name, `p` price, `q` pack, `up` price per unit,
+  `uu` unit, `o` old price if on promotion, `pct` % off, `until` promotion end, `c` shop category,
+  `img`/`url` relative to `ip`/`lp` at the top of the file). Migros is ~20,000 products, Aligro ~23,000.

@@ -1,0 +1,96 @@
+{
+ "built": "2026-11-17T17:57",
+ "stores": [
+  {
+   "id": "aligro",
+   "label": "Aligro",
+   "file": "data/aligro.json",
+   "updated": "2026-11-17",
+   "count": 23200,
+   "static": false
+  },
+  {
+   "id": "migros",
+   "label": "Migros",
+   "file": "data/migros.json",
+   "updated": "2026-11-17",
+   "count": 19653,
+   "static": false
+  },
+  {
+   "id": "lidl",
+   "label": "Lidl",
+   "file": "data/lidl.json",
+   "updated": "2026-11-17",
+   "count": 3371,
+   "static": false
+  },
+  {
+   "id": "aldi",
+   "label": "Aldi",
+   "file": "data/aldi.json",
+   "updated": "2026-11-17",
+   "count": 2470,
+   "static": false
+  },
+  {
+   "id": "prodega",
+   "label": "Prodega",
+   "file": "data/prodega.json",
+   "updated": "2026-11-17",
+   "count": 1395,
+   "static": false
+  },
+  {
+   "id": "maxim",
+   "label": "Maxim Merdan",
+   "file": "data/maxim.json",
+   "updated": "2026-11-17",
+   "count": 136,
+   "static": true
+  },
+  {
+   "id": "lianhua",
+   "label": "Lianhua",
+   "file": "data/lianhua.json",
+   "updated": "2026-11-17",
+   "count": 28,
+   "static": true
+  },
+  {
+   "id": "asiaway",
+   "label": "Asiaway",
+   "file": "data/asiaway.json",
+   "updated": "2026-11-17",
+   "count": 26,
+   "static": true
+  },
+  {
+   "id": "volg",
+   "label": "Volg",
+   "file": "data/volg.json",
+   "updated": "2026-11-17",
+   "count": 697,
+   "static": false
+  },
+  {
+   "id": "ottos",
+   "label": "Otto's",
+   "file": "data/ottos.json",
+   "updated": "2026-11-17",
+   "count": 2946,
+   "static": false
+  },
+  {
+   "id": "denner",
+   "label": "Denner",
+   "file": "data/denner.json",
+   "updated": "2026-11-17",
+   "count": 391,
+   "static": false
+  }
+ ],
+ "history": "data/promo_history.json",
+ "synonyms": "data/synonyms.json",
+ "kinds": "data/kinds.json"
+}
