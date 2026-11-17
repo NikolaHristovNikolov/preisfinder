@@ -448,6 +448,9 @@ function loadKinds(d) {
     }
   });
 }
+// a narrower kind that is another product made with it is related, not the product: chocolate drink, strawberry
+// yogurt, butter biscuits, vanilla pudding, cake mix
+const MADE_FROM = /drink|getrank|getraenk|boisson|cake|kuchen|torte|\bmix|mischung|flan|pudding|cookie|keks|biscuit|guetzli|riegel|\bbar\b|glace|ice cream|eis\b|sauce|dessert|joghurt|yogh?urt|muffin|croissant|gipfel|spread|aufstrich|creme|cream|mousse|cereal|muesli|pulver|powder|sirup|syrup|tee\b|\btea\b|konfit|jam\b|confiture|bonbon|candy|praline|pralin|waffel|waffle|brot\b|bread\b/;
 function queryKinds(ts) {
   const q = new Set();
   if (!KINDS.length || !ts.length || ts.length > 3) return q;
@@ -475,7 +478,8 @@ function queryKinds(ts) {
   const named = (i) => KINDS[i].n.some((n) => n.split(" ").some((w) => stems.some((s) => s.length >= 3 && (stem(w) === s || (w.endsWith(s) && w.length > s.length + 2)))));
   const out = new Set(q), stack = [...q];
   while (stack.length) {
-    for (const c of KCHILD[stack.pop()]) if (!out.has(c) && named(c) && !KINDS[c].n.some((n) => /peanut|erdnuss|cacahuete|nut |shea|kakao|cocoa/.test(n))) { out.add(c); stack.push(c); }
+    for (const c of KCHILD[stack.pop()]) if (!out.has(c) && named(c) && !KINDS[c].n.some((n) => /peanut|erdnuss|cacahuete|nut |shea|kakao|cocoa/.test(n))
+        && !KINDS[c].n.some((n) => MADE_FROM.test(n))) { out.add(c); stack.push(c); }
   }
   return out;
 }
@@ -483,7 +487,7 @@ let KQ = null;   // types of the current search (null = no type known: word rule
 
 // plant-based stand-ins ("Rahm Alternative Hafer", "Schlagsahne pflanzlich") are related, not main, for dairy / meat
 const PLANT_RE = /\b(pflanz|planzl|wie butter|like butter|ersatz|vegan|vegetal|veggie|vegi\b|vegetari|plant|alternativ|margarin|planted|hafer drink|oat drink|soja ?drink)/;
-let QPLANT = false;
+let QPLANT = false, PET_SEARCH = false;
 const broaderCache = new Map();
 function broaderThanQuery(k) {          // is type k an ancestor of one of the search's types?
   const key = k + "|" + [...KQ].join(",");
@@ -495,6 +499,8 @@ function broaderThanQuery(k) {          // is type k an ancestor of one of the s
 }
 function groupOf(it, intent) {
   if (it.gone) return 3;
+  // pet food and non-food are never the product when you search for food ("salmon" ≠ cat food with salmon)
+  if (KQ && !PET_SEARCH && (foodGroup(it) === "pets" || foodGroup(it) === "household")) return 2;
   if (!QPLANT && PLANT_RE.test(norm(it.n + " " + (it.ne || ""))) && ["dairy", "meatfish"].includes(foodGroup(it))) return 1;
   // typed: the type decides; typed only by its shelf (not its name) and the name lacks the word: related
   // a broader type (rice) whose name has every searched word (Jasmin … Parfümreis) is the product too
@@ -624,6 +630,7 @@ function search() {
   }
   // product types: the search's type(s), and products of that type that don't even contain the word
   KQ = queryKinds(ts);
+  PET_SEARCH = ts.some((t) => t.alts.some((a) => PET_RE.test(a) || /\b(cat|dog|katze|hund|tier|chat|chien)/.test(a)));
   QPLANT = ts.some((t) => t.alts.some((a) => PLANT_RE.test(a)));
   if (KQ.size && all.some((it) => it.k != null && KQ.has(it.k))) {
     const inOut = new Set(out);
@@ -735,7 +742,7 @@ function isGood(it) {
 // A promotion is rated against (a) its own regular price (% off) and (b) what similar products cost:
 // the median price per kg/l/pc of the same shop's category. "top" = extremely good, "good" = good deal.
 let dealCat = "", dealScope = "food";
-const NONFOOD = /beauty|gesundheit|kosmetik|koerperpflege|dusch|bade|haar|reinig|wasch|haushalt|papeterie|buero|tier|non food|nonfood|drogerie|baby|windel|hygiene|zahn|deo|parfum(?!reis)|make up|garten|spiel|kueche|wohn|putz|katzen|hunde|maschine|geraet|elektro/;
+const NONFOOD = /beauty|gesundheit|kosmetik|koerperpflege|dusch|bade|haar|reinig|wasch|haushalt|papeterie|buero|tier|non food|nonfood|drogerie|baby|windel|hygiene|zahn|deo|parfum(?!reis)|make up|garten|spiel|kueche|wohn|putz|katzen|hunde|maschine|geraet|elektro|\btisch|\bdeko|serviette/;
 const NONFOOD_NAME = new RegExp("\\b(persil|omo|ariel|lenor|tempo|airwick|air wick|finish|calgon|somat|sipuro|axe|nivea|rexona|" +
   "colgate|elmex|trisa|zwilling|silvercrest|tesa|duracell|varta|pampers|always|gillette|plenty|wc|deo|pants|lotion)\\b|" +
   "waschmittel|weichspuel|geschirrspuel|spuelmittel|fettloeser|entkalk|reiniger|shampoo|duschgel|dusche|seife|bodylotion|" +
@@ -820,7 +827,7 @@ const OLD_GROUPS = { drinks: ["softdrinks", "juices", "water"], sweets: ["sweets
 const GROUP_LABEL = new Proxy({}, { get: (_, g) => t("g_" + String(g)) });
 const SOFT_NAME = /\b(capri sun|pepsi|coca cola|cola zero|fanta|sprite|red bull|rivella|schweppes|ice tea|icetea|eistee|energy drink|7 ?up|mountain dew|monster energy|mineralwasser|valser|henniez|evian|vittel|san pellegrino|softdrink|limonade|orangensaft|apfelsaft|multivitaminsaft)\b/;
 // pet food and care, by name or shelf: Whiskas, Felix, Katzenstreu, the shops' "Tierbedarf" shelves
-const PET_RE = /\b(whiskas|felix|sheba|purina|pedigree|frolic|kitekat|cesar|gourmet gold|gourmet perle|perfect fit|vitakraft|catsan|animonda|royal canin|hill s|friskies|kattovit|bozita|cat food|dog food|katzenfutter|hundefutter|katzenstreu|nagerfutter|vogelfutter|tierfutter|tiernahrung|tierbedarf|haustier|katzen?snack|hunde?snack)\b|katze(?!nzunge)|hunde(?!rt)/;
+const PET_RE = /\b(whiskas|felix|sheba|purina|pedigree|frolic|kitekat|cesar|gourmet gold|gourmet perle|perfect fit|vitakraft|catsan|animonda|royal canin|hill s|friskies|kattovit|bozita|cat food|dog food|katzenfutter|hundefutter|katzenstreu|nagerfutter|vogelfutter|tierfutter|tiernahrung|tierbedarf|haustier|katzen?snack|hunde?snack|nassfutter|trockenfutter|cats?|dogs?)\b|katze(?!nzunge)|hunde(?!rt)/;
 function foodGroup(it) {
   if (it.fg !== undefined) return it.fg;
   if (PET_RE.test(norm([it.n, it.c, it.ct].filter(Boolean).join(" ")))) return (it.fg = "pets");
