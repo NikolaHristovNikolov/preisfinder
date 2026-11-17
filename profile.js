@@ -270,6 +270,9 @@ async function syncNow() {
   // ?prefs=drinks:hide,sweets:hide · ?shops=all (every shop on) or ?shops=aligro,denner (switch these on)
   const u = new URL(location.href), s = u.searchParams.get("prefs"), sh = u.searchParams.get("shops");
   if (!s && !sh) return;
+  // a personal link (e.g. a home-screen icon) is applied once: later changes in Settings are kept
+  const linkKey = (s || "") + "|" + (sh || "");
+  try { if (localStorage.getItem("pf.preset") === linkKey) return; localStorage.setItem("pf.preset", linkKey); } catch (e) {}
   for (const part of (s || "").split(",").filter(Boolean)) {
     const [g, v] = part.split(":");
     if (g && ["show", "hide", "more", "normal", "top"].includes(v)) P.pref[g] = { v: v === "hide" ? "hide" : "show", t: Date.now() };
@@ -278,9 +281,7 @@ async function syncNow() {
     const ids = sh === "all" ? ["aligro", "aldi", "asiaway", "coop", "denner", "lianhua", "lidl", "maxim", "migros", "ottos", "prodega", "volg"] : sh.split(",");
     for (const id of ids) P.pref["shop:" + id.trim()] = { v: "show", t: Date.now() };
   }
-  saveProfile();
-  u.searchParams.delete("prefs"); u.searchParams.delete("shops");
-  history.replaceState(null, "", u);
+  saveProfile();       // the settings stay in the address, so "Add to Home Screen" keeps them
 })();
 
 // shop info bubbles: one open at a time, a tap anywhere else closes it
