@@ -159,6 +159,21 @@ function prep(it, d) {
 }
 
 // ---------------------------------------------------------------- load
+async function privateExtras() {
+  let tok = null;
+  try { tok = (JSON.parse(localStorage.getItem("pf.sync")) || {}).token; } catch (e) {}
+  if (!tok) return [];
+  const H = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" };
+  const list = await (await fetch("https://api.github.com/gists?per_page=100", { headers: H })).json();
+  const g = Array.isArray(list) && list.find((x) => x.files && x.files["preisfinder-private.txt"]);
+  if (!g) return [];
+  const LABEL = { coop: "Coop" };
+  return Object.values(g.files).filter((f) => f.filename.endsWith(".json")).map((f) => {
+    const id = f.filename.replace(/\.json$/, "");
+    return LABEL[id] ? { store: { id, label: LABEL[id], file: f.raw_url, private: true } } : { url: f.raw_url };
+  });
+}
+
 async function init() {
   applyStaticTexts(); showSort();
   $("#q").value = new URLSearchParams(location.search).get("q") || "";   // before anything can call search()
@@ -179,7 +194,14 @@ async function init() {
   const v = "?v=" + encodeURIComponent(index.built || "");          // new build = fresh files (no stale cache)
   if (index.kinds) fetch(index.kinds + v).then((r) => r.json()).then(loadKinds).then(() => { if (all.length) { rateDeals(); search(); } }).catch(() => {});
   if (index.synonyms) fetch(index.synonyms + v).then((r) => r.json()).then(addSynonyms).then(() => all.length && search()).catch(() => {});
-  const files = stores.map((s) => s.file).concat(index.history ? [index.history] : []);
+  // your own extra shops (Coop, Denner's full range): only on your devices, from a secret Gist in your GitHub account,
+  // found with the sync token from Settings. Visitors without your token never see them.
+  const extra = await Promise.race([privateExtras(), new Promise((r) => setTimeout(() => r([]), 6000))]).catch(() => []);
+  for (const x of extra) if (x.store && !stores.some((s) => s.id === x.store.id)) {
+    stores.push(x.store); stores.sort((a, b) => a.label.localeCompare(b.label, "de")); active.add(x.store.id);
+  }
+  if (extra.length) { applyShopPrefs(); renderChips(); }
+  const files = stores.map((s) => s.file).concat(extra.filter((x) => !x.store).map((x) => x.url)).concat(index.history ? [index.history] : []);
   const parts = await Promise.all(files.map(async (f) => {
     try { const d = await (await fetch(f + v)).json(); return { f, d }; } catch (e) { return { f, d: { items: [] } }; }
   }));
