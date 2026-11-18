@@ -70,7 +70,7 @@ poisson:fisch;saumon:lachs;thon:thunfisch;crevettes:crevetten;saucisse:wurst;jam
 gingembre:ingwer;ail:knoblauch;oignon:zwiebel;oignons:zwiebeln;tomate:tomaten;tomates:tomaten;carotte:karotten;
 carottes:karotten;concombre:gurke;salade:salat;epinards:spinat;chou:kohl;chou fleur:blumenkohl;champignon:champignons;
 poireau:lauch;citrouille:kürbis;courge:kürbis;mais:mais;petits pois:erbsen;haricots:bohnen;lentilles:linsen;
-pois chiches:kichererbsen;citron:zitronen;pomme:äpfel;pommes:äpfel;banane:bananen;poire:birnen;raisin:trauben;
+pois chiches:kichererbsen;citron:zitronen;pomme:äpfel;pommes:äpfel;banane:bananen;poire:birnen;
 fraises:erdbeeren;framboises:himbeeren;myrtilles:heidelbeeren;cerises:kirschen;noix:nüsse,baumnüsse;amandes:mandeln;
 noisettes:haselnüsse;persil:petersilie;basilic:basilikum;menthe:minze;cannelle:zimt;chocolat:schokolade;lessive:waschmittel;
 savon:seife;dentifrice:zahnpasta;couches:windeln`;
@@ -116,7 +116,10 @@ const PET_CAT = /tierbedarf|tiernahrung|futter|hunde|katzen|pet food/;
 const PET_Q = /\b(dog|cat|pet|hund|hunde|katze|katzen|tier|futter|chien|chat)\b/;
 
 // ---------------------------------------------------------------- state
-let keepShown = false;
+// "Show more" stays expanded until the search or filters change: background updates (sync with your other devices,
+// type lists arriving, your private shops loading) redraw the list but no longer fold it back to the first 60
+let moreKey = "";
+function keepMore(key) { if (key !== moreKey) { moreKey = key; shown = PAGE; } }
 let all = [], stores = [], active = new Set(), promoOnly = false, bioOnly = false, shown = PAGE, results = [], good = null;
 const fmt = (x) => x == null ? "" : x.toFixed(2);
 const ddmm = (d) => d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.` : "";
@@ -287,7 +290,12 @@ function renderChips() {
 
 // Open Food Facts synonym groups: [[de…], [en…], [fr…]] → every name finds the others
 function addSynonyms(d) {
-  for (const g of d.groups || []) {
+  // a French word that is another group's English word is a false friend: French "raisin" (grapes) vs English
+  // "raisins" (dried grapes). The English meaning wins.
+  const EN = new Set((d.groups || []).flatMap((g) => g[1] || []).map(stem));
+  for (const g0 of d.groups || []) {
+    const ownEn = new Set((g0[1] || []).map(stem));
+    const g = [g0[0] || [], g0[1] || [], (g0[2] || []).filter((n) => ownEn.has(stem(n)) || !EN.has(stem(n)))];
     const members = g.flat();
     g.forEach((names, i) => names.forEach((n) => { if (!LANG.has(n)) LANG.set(n, ["de", "en", "fr"][i]); }));
     for (const m of members) {
@@ -473,6 +481,10 @@ function queryKinds(ts) {
     const d = Math.min(...KINDS[i].n.map((n) => n === a ? 0 : Math.abs(n.length - a.length) + (n.slice(0, 3) === a.slice(0, 3) ? 0 : 5)));
     cand.push([i, d + (a === ts[0].w || (dict.get(ts[0].w) || []).includes(a) ? 0 : 2)]);
   }
+  // a fruit and a spirit of the same name (Kirschen / Kirsch) in a tie: the fruit. "beer" stays beer.
+  const alc = (i) => / alcoholic-beverages/.test(" " + KANC[i]);
+  const bestFood = Math.min(Infinity, ...cand.filter((c) => !alc(c[0])).map((c) => c[1]));
+  for (let j = cand.length - 1; j >= 0; j--) if (alc(cand[j][0]) && cand[j][1] >= bestFood) cand.splice(j, 1);
   const best = Math.min(Infinity, ...cand.map((c) => c[1]));
   for (const [i, d] of cand) if (d === best) q.add(i);
   // + narrower types whose name still contains the word (butters -> salted butters, but not peanut butter / ghee
@@ -507,7 +519,7 @@ function groupOf(it, intent) {
   if (!QPLANT && PLANT_RE.test(norm(it.n + " " + (it.ne || ""))) && ["dairy", "meatfish"].includes(foodGroup(it))) return 1;
   // typed: the type decides; typed only by its shelf (not its name) and the name lacks the word: related
   // a broader type (rice) whose name has every searched word (Jasmin … Parfümreis) is the product too
-  if (KQ && it.k != null) return (KQ.has(it.k) && !(it.kc && it.t >= 4)) || (it.t <= 2 && broaderThanQuery(it.k)) ? 0 : it.t <= 3 ? 1 : 2;
+  if (KQ && it.k != null) return (KQ.has(it.k) && !(it.kc && it.t >= 4) && !it.kx) || (it.t <= 2 && broaderThanQuery(it.k)) ? 0 : it.t <= 3 ? 1 : 2;
   if (KQ && (!isFood(it) || it.t >= 2)) return it.t <= 3 && isFood(it) ? 1 : 2;  // untyped: non-food never main
   if (it.plain) return 0;
   const set = intent[it.s];
@@ -584,10 +596,9 @@ function search() {
   const url = new URL(location.href);
   q ? url.searchParams.set("q", q) : url.searchParams.delete("q");
   history.replaceState(null, "", url);
-  if (!keepShown) shown = PAGE;
-  keepShown = false;
   let ts = terms(q), note = "";
   if (!ts.length) { showDeals(); return; }
+  keepMore("q|" + q + "|" + promoOnly + bioOnly + $("#sort").value + [...active].join());
   // a shop's name ("lidl", "denner") lists that shop: offers first, best deals on top
   const shop = stores.find((s) => norm(q) && [norm(s.id), norm(s.label), norm(s.label.split(" ")[0])].includes(norm(q)));
   if (shop) {
@@ -745,8 +756,8 @@ function isGood(it) {
 // A promotion is rated against (a) its own regular price (% off) and (b) what similar products cost:
 // the median price per kg/l/pc of the same shop's category. "top" = extremely good, "good" = good deal.
 let dealCat = "", dealScope = "food";
-const NONFOOD = /beauty|gesundheit|kosmetik|koerperpflege|dusch|bade|haar|reinig|wasch|haushalt|papeterie|buero|tier|non food|nonfood|drogerie|baby|windel|hygiene|zahn|deo|parfum(?!reis)|make up|garten|spiel|kueche|wohn|putz|katzen|hunde|maschine|geraet|elektro|\btisch|\bdeko|serviette/;
-const NONFOOD_NAME = new RegExp("\\b(persil|omo|ariel|lenor|tempo|airwick|air wick|finish|calgon|somat|sipuro|axe|nivea|rexona|" +
+const NONFOOD = /kuechenbedarf|raumduft|bettbez|handpflege|verpackung|kochgeschirr|besteck|papierartikel|grill ?zubehoer|holzkohle|anzuend|beauty|gesundheit|kosmetik|koerperpflege|dusch|bade|haar|reinig|wasch|haushalt|papeterie|buero|tier|non food|nonfood|drogerie|baby|windel|hygiene|zahn|deo|parfum(?!reis)|make up|garten|spiel|kueche|wohn|putz|katzen|hunde|maschine|geraet|elektro|\btisch|\bdeko|serviette/;
+const NONFOOD_NAME = new RegExp("\\b(listerine|odol|persil|omo|ariel|lenor|tempo|airwick|air wick|finish|calgon|somat|sipuro|axe|nivea|rexona|" +
   "colgate|elmex|trisa|zwilling|silvercrest|tesa|duracell|varta|pampers|always|gillette|plenty|wc|deo|pants|lotion)\\b|" +
   "waschmittel|weichspuel|geschirrspuel|spuelmittel|fettloeser|entkalk|reiniger|shampoo|duschgel|dusche|seife|bodylotion|" +
   "handbalsam|zahnbuerst|zahnpasta|zahncreme|windel|feuchttuech|allzwecktuech|haushaltstuch|haushaltspapier|" +
@@ -873,7 +884,8 @@ function showDeals() {
   const deals = pool.filter((it) => !dealCat || it.c === dealCat)
     .sort((a, b) => (a.deal === "top" ? 0 : 1) - (b.deal === "top" ? 0 : 1) || b.score - a.score);
   for (const it of deals) it.g = it.deal === "top" ? 0 : 1;
-  results = deals; shown = PAGE; good = null;
+  results = deals; good = null;
+  keepMore("d|" + dealCat + "|" + dealScope + goodToo() + usePrefs() + [...active].join());
   $("#sum").hidden = true; $("#sum").innerHTML = "";
   const topCats = [...cats].sort((a, b) => b[1] - a[1]).slice(0, 14);
   const scopes = [["food", t("foodDrinks")], ["home", t("household")], ["all", t("all")]];
@@ -993,7 +1005,7 @@ $("#bio").addEventListener("click", (e) => {
   bioOnly = !bioOnly; e.currentTarget.setAttribute("aria-pressed", bioOnly); search();
 });
 $("#dealsBtn").addEventListener("click", () => { $("#q").value = ""; dealCat = ""; setView("search"); window.scrollTo({ top: 0 }); });
-$("#more").addEventListener("click", () => { shown += PAGE; if ($("#q").value.trim()) { keepShown = true; search(); } else renderDeals(); });
+$("#more").addEventListener("click", () => { shown += PAGE; if ($("#q").value.trim()) render(); else renderDeals(); });
 $("#kinds").addEventListener("click", (e) => {
   if (e.target.closest("[data-prefs]")) { save("usePrefs", !usePrefs()); showDeals(); return; }
   if (e.target.closest("[data-good]")) { save("goodDeals", !goodToo()); showDeals(); return; }
