@@ -12,7 +12,7 @@ This repository holds the published page; it is rebuilt every week from a privat
 ## What's in it
 
 Migros, Aldi, Lidl (whole range), Denner (offers, and a year of past offers), Aligro, Prodega (offers), Volg,
-Otto's, and three small shops — about 50,000 products, compared per kg / l, with this week's deals rated against
+Otto's — about 50,000 products, compared per kg / l, with this week's deals rated against
 similar products. Search in English, German, French or Italian; works on a phone and offline.
 
 **Coop is not included.** Coop's website blocks automated requests. If you want Coop for yourself, the

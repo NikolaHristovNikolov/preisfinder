@@ -1,6 +1,6 @@
 // App shell cached; price data network-first (falls back to the cached copy offline).
-const V = "preisfinder-v109";
-const SHELL = ["./", "index.html", "style.css?v=109", "i18n.js?v=109", "app.js?v=109", "profile.js?v=109", "manifest.webmanifest", "icon.svg"];
+const V = "preisfinder-v110";
+const SHELL = ["./", "index.html", "style.css?v=110", "i18n.js?v=110", "app.js?v=110", "profile.js?v=110", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))));

@@ -167,10 +167,13 @@ async function privateExtras() {
   const list = await (await fetch("https://api.github.com/gists?per_page=100", { headers: H })).json();
   const g = Array.isArray(list) && list.find((x) => x.files && x.files["preisfinder-private.txt"]);
   if (!g) return [];
-  const LABEL = { coop: "Coop" };
+  // stores.meta: name, date, count of each private shop (Coop, and Maxim / Lianhua / Asiaway from your receipts)
+  let meta = [{ id: "coop", label: "Coop" }];
+  if (g.files["stores.meta"]) try { meta = await (await fetch(g.files["stores.meta"].raw_url)).json(); } catch (e) {}
+  const byId = Object.fromEntries(meta.map((s) => [s.id, s]));
   return Object.values(g.files).filter((f) => f.filename.endsWith(".json")).map((f) => {
     const id = f.filename.replace(/\.json$/, "");
-    return LABEL[id] ? { store: { id, label: LABEL[id], file: f.raw_url, private: true } } : { url: f.raw_url };
+    return byId[id] ? { store: { ...byId[id], file: f.raw_url, private: true } } : { url: f.raw_url };
   });
 }
 
