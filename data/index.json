@@ -1,5 +1,5 @@
 {
- "built": "2026-11-19T08:46",
+ "built": "2026-11-22T16:30",
  "stores": [
   {
    "id": "aligro",
@@ -61,8 +61,8 @@
    "id": "denner",
    "label": "Denner",
    "file": "data/denner.json",
-   "updated": "2026-11-17",
-   "count": 391,
+   "updated": "2026-11-22",
+   "count": 196,
    "static": false
   }
  ],

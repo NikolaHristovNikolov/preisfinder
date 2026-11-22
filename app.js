@@ -220,8 +220,15 @@ async function init() {
   const hist = parts.find((p) => p.f === index.history);
   if (hist) {
     const byKey = new Map(all.map((it) => [keyOf(it), it]));
+    const pidOf = (it) => it.s + "|" + (((it.url || "").match(/~p(\d+)/) || [])[1] || keyOf(it));
+    const byPid = new Set(all.map(pidOf));
     for (const h of hist.d.items) {
-      if (h.until && h.until >= TODAY) continue;        // still running
+      h.hk = h.k; h.k = h.kt; delete h.kt;               // "k" there is the history key; the product type is "kt"
+      if (h.until && h.until >= TODAY) {                // still running
+        // an offer only the printed flyer has (not the shop's website): show it as a current offer
+        if (!byKey.has(keyOf(h)) && !byPid.has(pidOf(h)) && h.o != null) { all.push(prep(h, hist.d)); byPid.add(pidOf(h)); }
+        continue;
+      }
       const promo = { p: h.p, up: h.up, pct: h.pct, until: h.until };
       const regular = h.o;
       delete h.o; delete h.until; delete h.pct;
