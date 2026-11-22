@@ -141,7 +141,7 @@ const TX = {
   footerEnd: [" · incl. VAT · not affiliated with any shop · ", " · inkl. MwSt. · mit keinem Laden verbunden · ",
     " · TVA incl. · sans lien avec les magasins · ", " · IVA incl. · nessun legame con i negozi · "],
   sources: ["Sources & limits", "Quellen & Grenzen", "Sources & limites", "Fonti & limiti"],
-  regularFrom: ["normal price calculated from a promotion ({d})", "Normalpreis berechnet aus einer Aktion ({d})", "prix normal calculé d'après une promo ({d})", "prezzo normale calcolato da un'offerta ({d})"],
+  regularFrom: ["normal price from past promotion ({d})", "Normalpreis aus vergangener Aktion ({d})", "prix normal d'une promo passée ({d})", "prezzo normale da un'offerta passata ({d})"],
   // food groups
   g_vegfruit: ["Fruit & vegetables", "Früchte & Gemüse", "Fruits & légumes", "Frutta & verdura"],
   g_meatfish: ["Meat & fish", "Fleisch & Fisch", "Viande & poisson", "Carne & pesce"],
