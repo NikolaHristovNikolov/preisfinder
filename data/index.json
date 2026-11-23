@@ -1,68 +1,68 @@
 {
- "built": "2026-11-22T18:05",
+ "built": "2026-11-23T22:42",
  "stores": [
   {
    "id": "aligro",
    "label": "Aligro",
    "file": "data/aligro.json",
-   "updated": "2026-11-17",
-   "count": 23200,
+   "updated": "2026-11-23",
+   "count": 23228,
    "static": false
   },
   {
    "id": "migros",
    "label": "Migros",
    "file": "data/migros.json",
-   "updated": "2026-11-17",
-   "count": 19653,
+   "updated": "2026-11-23",
+   "count": 19627,
    "static": false
   },
   {
    "id": "lidl",
    "label": "Lidl",
    "file": "data/lidl.json",
-   "updated": "2026-11-17",
-   "count": 3371,
+   "updated": "2026-11-23",
+   "count": 3419,
    "static": false
   },
   {
    "id": "aldi",
    "label": "Aldi",
    "file": "data/aldi.json",
-   "updated": "2026-11-17",
-   "count": 2470,
+   "updated": "2026-11-23",
+   "count": 2472,
    "static": false
   },
   {
    "id": "prodega",
    "label": "Prodega",
    "file": "data/prodega.json",
-   "updated": "2026-11-17",
-   "count": 1395,
+   "updated": "2026-11-23",
+   "count": 1767,
    "static": false
   },
   {
    "id": "volg",
    "label": "Volg",
    "file": "data/volg.json",
-   "updated": "2026-11-17",
-   "count": 697,
+   "updated": "2026-11-23",
+   "count": 700,
    "static": false
   },
   {
    "id": "ottos",
    "label": "Otto's",
    "file": "data/ottos.json",
-   "updated": "2026-11-17",
-   "count": 2946,
+   "updated": "2026-11-23",
+   "count": 2914,
    "static": false
   },
   {
    "id": "denner",
    "label": "Denner",
    "file": "data/denner.json",
-   "updated": "2026-11-22",
-   "count": 196,
+   "updated": "2026-11-23",
+   "count": 683,
    "static": false
   }
  ],
